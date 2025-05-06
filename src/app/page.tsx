@@ -7,14 +7,15 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 // Chart.js 등록
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const itemTypes = ["무기", "방어구", "장신구"];
+const itemTypes = ["무기", "방어구", "장신구"] as const;
+type ItemType = (typeof itemTypes)[number];
 const upgradeStages = ["0 → 1", "1 → 2", "2 → 3", "3 → 4", "4 → 5", "5 → 6"];
 
 type StageCount = { success: number; fail: number };
 
 const displayedRates = [0.9, 0.85, 0.8, 0.5, 0.4, 0.1]; // 0~1 사이 값
 
-const dummyCounts = {
+const dummyCounts: Record<ItemType, StageCount[]> = {
   무기: [
     { success: 90, fail: 10 }, // 0→1
     { success: 85, fail: 15 }, // 1→2
@@ -93,7 +94,7 @@ function ItemUpgradeBox({
   counts,
   setCounts,
 }: {
-  itemType: string;
+  itemType: ItemType;
   counts: StageCount[];
   setCounts: (counts: StageCount[]) => void;
 }) {
@@ -234,10 +235,9 @@ function SuccessFailDoughnut({
 
 export default function Home() {
   const [serverCounts, setServerCounts] =
-    useState<Record<string, StageCount[]>>(dummyCounts);
-  const [formCounts, setFormCounts] = useState<Record<string, StageCount[]>>(
-    {}
-  );
+    useState<Record<ItemType, StageCount[]>>(dummyCounts);
+  const [formCounts, setFormCounts] =
+    useState<Record<ItemType, StageCount[]>>(dummyCounts);
 
   useEffect(() => {
     fetch("/api/summary")
@@ -307,7 +307,9 @@ export default function Home() {
             <ItemUpgradeBox
               key={itemType}
               itemType={itemType}
-              counts={formCounts[itemType] || dummyCounts[itemType]}
+              counts={
+                (formCounts[itemType] || dummyCounts[itemType]) as StageCount[]
+              }
               setCounts={(counts) => setItemCounts(itemType, counts)}
             />
           ))}
